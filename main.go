@@ -42,8 +42,9 @@ func main() {
 	values := make([]uint16, 10)
 
 	a := app.New()
-	a.SetIcon(theme.FyneLogo())
-	w := a.NewWindow("Battery")
+	r, _ := fyne.LoadResourceFromPath("logo.png")
+	a.SetIcon(r)
+	w := a.NewWindow("BMS")
 	w.SetMaster()
 	a.Settings().SetTheme(theme.DarkTheme())
 
