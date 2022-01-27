@@ -20,11 +20,6 @@ import (
 
 const qty_cell int = 7
 
-// func updateTime(clock *widget.Label) {
-// 	formatted := time.Now().Format("03:04:05")
-// 	clock.SetText(formatted)
-// }
-
 func button_save(entry *widget.Entry, answer *canvas.Text) *widget.Button {
 	btn := widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() {
 		n, err := strconv.ParseUint(entry.Text, 0, 16)
@@ -49,20 +44,8 @@ func main() {
 	a := app.New()
 	a.SetIcon(theme.FyneLogo())
 	w := a.NewWindow("Battery")
-	// w.SetMainMenu(
-	// 	fyne.NewMainMenu(fyne.NewMenu("File",
-	// 		fyne.NewMenuItem("New", func() {})),
-	// 		fyne.NewMenu("Edit",
-	// 			fyne.NewMenuItem("Cut", func() {}),
-	// 			fyne.NewMenuItem("Copy", func() {}),
-	// 			fyne.NewMenuItem("Paste", func() {}))),
-	// )
 	w.SetMaster()
 	a.Settings().SetTheme(theme.DarkTheme())
-
-	// clock := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
-	// formatted := time.Now().Format("03:04:05")
-	// clock.SetText(formatted)
 
 	title := canvas.NewText("Сell parameters", color.NRGBA{241, 212, 130, 255})
 	title.TextSize = 20
@@ -71,7 +54,7 @@ func main() {
 	var cell [qty_cell]*widget.ProgressBar
 	for i, _ := range cell {
 		cell[i] = widget.NewProgressBar()
-		cell[i].Min = 3.2
+		cell[i].Min = 0.2
 		cell[i].Max = 4.2
 		cell[i].SetValue(3.2)
 		cell[i].TextFormatter = func() string { return fmt.Sprintf("%.2f Volts", 0.0) }
@@ -97,9 +80,6 @@ func main() {
 	temp_board := widget.NewLabel("Board: stopped")
 	temp_1 := widget.NewLabel("Sensor 1: stopped")
 	temp_2 := widget.NewLabel("Sensor 2: stopped")
-	error_message := canvas.NewText("", color.NRGBA{237, 62, 31, 240})
-	error_message.TextSize = 15
-	error_message.Alignment = 1
 
 	var circle_green [8]*canvas.Circle
 	for i, _ := range circle_green {
@@ -181,8 +161,6 @@ func main() {
 	cell_box6 := container.NewGridWithColumns(3, cell[5], container.NewGridWithColumns(2, entry[5], btn[5]), container.NewGridWithColumns(2, state_bit_5, error_bit_5))
 	cell_box7 := container.NewGridWithColumns(3, cell[6], container.NewGridWithColumns(2, entry[6], btn[6]), container.NewGridWithColumns(2, state_bit_6, error_bit_6))
 
-	// registr_box := container.NewVBox(&layout.Spacer{}, &layout.Spacer{},  bit_1,	bit_2, bit_3, bit_4, bit_5,	bit_6)
-
 	select_port := widget.NewSelect(debug_uart.GetPort(), func(string) {})
 	select_port.SetSelectedIndex(1)
 
@@ -195,8 +173,6 @@ func main() {
 		} else {
 			err := uart.Listen(select_port.Selected)
 			if err != nil {
-				error_message.Text = "Not connect"
-				error_message.Refresh()
 				return
 			}
 			connect = true
@@ -225,9 +201,6 @@ func main() {
 		}
 	})
 
-	// btn_reserv := widget.NewButton("Reserv", func() {})
-	// btn_reserv1 := widget.NewButton("Reserv", func() {})
-
 	btn_box := container.NewGridWithColumns(3, container.NewGridWithColumns(2, select_port, btn_connect), container.NewGridWithColumns(2, btn_start, btn_theme), container.NewGridWithColumns(2, state_bit_7, error_bit_7))
 
 	content := container.NewVBox(
@@ -236,12 +209,6 @@ func main() {
 		cell_box1, cell_box2, cell_box3, cell_box4, cell_box5, cell_box6, cell_box7,
 		btn_box,
 	)
-
-	// go func() {
-	// 	for range time.Tick(time.Second) {
-	// 		updateTime(clock)
-	// 	}
-	// }()
 
 	go func() {
 		for range time.Tick(30 * time.Millisecond) {
@@ -258,24 +225,24 @@ func main() {
 				temp_1.SetText("Sensor 1: " + strconv.Itoa(int(values[8])-273) + "C°")
 				temp_2.SetText("Sensor 2: " + strconv.Itoa(int(values[9])-273) + "C°")
 
-				// state_answer := uart.GetState()
-				// for i, n := range circle_green {
-				// 	if GetBit(state_answer, i) {
-				// 		n.FillColor = color.NRGBA{17, 255, 0, 255}
-				// 	} else {
-				// 		n.FillColor = color.NRGBA{147, 189, 158, 50}
-				// 	}
-				// 	n.Refresh()
-				// }
-				// error_answer := uart.GetError()
-				// for i, n := range circle_red {
-				// 	if GetBit(error_answer, i) {
-				// 		n.FillColor = color.NRGBA{255, 3, 15, 255}
-				// 	} else {
-				// 		n.FillColor = color.NRGBA{217, 26, 20, 50}
-				// 	}
-				// 	n.Refresh()
-				// }
+				state_answer := uart.GetState()
+				for i, n := range circle_green {
+					if GetBit(state_answer, i) {
+						n.FillColor = color.NRGBA{17, 255, 0, 255}
+					} else {
+						n.FillColor = color.NRGBA{147, 189, 158, 50}
+					}
+					n.Refresh()
+				}
+				error_answer := uart.GetError()
+				for i, n := range circle_red {
+					if GetBit(error_answer, i) {
+						n.FillColor = color.NRGBA{255, 3, 15, 255}
+					} else {
+						n.FillColor = color.NRGBA{217, 26, 20, 50}
+					}
+					n.Refresh()
+				}
 
 			} else if uart.Stopped {
 				for i, _ := range cell {
