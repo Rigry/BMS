@@ -20,21 +20,19 @@ import (
 
 const qty_cell int = 7
 
-func button_save(entry *widget.Entry, answer *canvas.Text) *widget.Button {
-	btn := widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() {
-		n, err := strconv.ParseUint(entry.Text, 0, 16)
-		if err != nil {
-			answer.Text = "ошибка"
-		} else {
-			answer.Text = fmt.Sprintf("%d", n)
-		}
+// func button_save(i int, save *bool) *widget.Button {
+// 	btn := widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() {
+// 		*save = true
+// 	})
+// 	return btn
+// }
+
+func button_balancing(i int, uart *debug_uart.Uart) *widget.Button {
+	btn := widget.NewButton(strconv.Itoa(i+1), func() {
+		uart.Balance(byte(i + 49))
 	})
 	return btn
 }
-
-// func button_balancing() *widget.NewButton {
-// 	btn := widget.NewButton()
-// }
 
 func GetBit(v byte, n int) bool {
 	return v&(1<<n) != 0
@@ -45,6 +43,8 @@ func main() {
 	uart := debug_uart.Make()
 	// defer uart.Port.Close()
 	values := make([]uint16, 10)
+	var state_answer byte
+	var error_answer byte
 
 	a := app.New()
 	r, _ := fyne.LoadResourceFromPath("logo.png")
@@ -60,7 +60,7 @@ func main() {
 	var cell [qty_cell]*widget.ProgressBar
 	for i, _ := range cell {
 		cell[i] = widget.NewProgressBar()
-		cell[i].Min = 0.2
+		cell[i].Min = 3.2
 		cell[i].Max = 4.2
 		cell[i].SetValue(3.2)
 		cell[i].TextFormatter = func() string { return fmt.Sprintf("%.2f Volts", 0.0) }
@@ -72,20 +72,22 @@ func main() {
 		entry[i].SetPlaceHolder("Correction")
 	}
 
-	var answer [qty_cell]*canvas.Text
-	for i, _ := range answer {
-		answer[i] = canvas.NewText("", color.NRGBA{255, 212, 152, 255})
-		answer[i].Alignment = 1
-	}
-
-	var btn [qty_cell]*widget.Button
-	for i, _ := range btn {
-		btn[i] = button_save(entry[i], answer[i])
-	}
+	var btn_save [qty_cell]*widget.Button
+	var save [qty_cell]bool
+	// for i, _ := range btn_save {
+	// 	btn_save[i] = button_save(i, &save[i])
+	// }
+	btn_save[0] = widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() { save[0] = true })
+	btn_save[1] = widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() { save[1] = true })
+	btn_save[2] = widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() { save[2] = true })
+	btn_save[3] = widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() { save[3] = true })
+	btn_save[4] = widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() { save[4] = true })
+	btn_save[5] = widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() { save[5] = true })
+	btn_save[6] = widget.NewButtonWithIcon("save", theme.DocumentSaveIcon(), func() { save[6] = true })
 
 	var balancing [qty_cell]*widget.Button
 	for i, _ := range balancing {
-		balancing[i] = widget.NewButton(strconv.Itoa(i + 1), func(){})
+		balancing[i] = button_balancing(i, uart)
 	}
 
 	temp_board := widget.NewLabel("Board: stopped")
@@ -164,13 +166,13 @@ func main() {
 	label_error.Alignment = 1
 
 	temp_box := container.NewGridWithColumns(6, temp_board, temp_1, temp_2, &layout.Spacer{}, label_state, label_error)
-	cell_box1 := container.NewGridWithColumns(3, cell[0], container.NewGridWithColumns(3, entry[0], btn[0], balancing[0]), container.NewGridWithColumns(2, state_bit_0, error_bit_0))
-	cell_box2 := container.NewGridWithColumns(3, cell[1], container.NewGridWithColumns(3, entry[1], btn[1], balancing[1]), container.NewGridWithColumns(2, state_bit_1, error_bit_1))
-	cell_box3 := container.NewGridWithColumns(3, cell[2], container.NewGridWithColumns(3, entry[2], btn[2], balancing[2]), container.NewGridWithColumns(2, state_bit_2, error_bit_2))
-	cell_box4 := container.NewGridWithColumns(3, cell[3], container.NewGridWithColumns(3, entry[3], btn[3], balancing[3]), container.NewGridWithColumns(2, state_bit_3, error_bit_3))
-	cell_box5 := container.NewGridWithColumns(3, cell[4], container.NewGridWithColumns(3, entry[4], btn[4], balancing[4]), container.NewGridWithColumns(2, state_bit_4, error_bit_4))
-	cell_box6 := container.NewGridWithColumns(3, cell[5], container.NewGridWithColumns(3, entry[5], btn[5], balancing[5]), container.NewGridWithColumns(2, state_bit_5, error_bit_5))
-	cell_box7 := container.NewGridWithColumns(3, cell[6], container.NewGridWithColumns(3, entry[6], btn[6], balancing[6]), container.NewGridWithColumns(2, state_bit_6, error_bit_6))
+	cell_box1 := container.NewGridWithColumns(3, cell[0], container.NewGridWithColumns(3, entry[0], btn_save[0], balancing[0]), container.NewGridWithColumns(2, state_bit_0, error_bit_0))
+	cell_box2 := container.NewGridWithColumns(3, cell[1], container.NewGridWithColumns(3, entry[1], btn_save[1], balancing[1]), container.NewGridWithColumns(2, state_bit_1, error_bit_1))
+	cell_box3 := container.NewGridWithColumns(3, cell[2], container.NewGridWithColumns(3, entry[2], btn_save[2], balancing[2]), container.NewGridWithColumns(2, state_bit_2, error_bit_2))
+	cell_box4 := container.NewGridWithColumns(3, cell[3], container.NewGridWithColumns(3, entry[3], btn_save[3], balancing[3]), container.NewGridWithColumns(2, state_bit_3, error_bit_3))
+	cell_box5 := container.NewGridWithColumns(3, cell[4], container.NewGridWithColumns(3, entry[4], btn_save[4], balancing[4]), container.NewGridWithColumns(2, state_bit_4, error_bit_4))
+	cell_box6 := container.NewGridWithColumns(3, cell[5], container.NewGridWithColumns(3, entry[5], btn_save[5], balancing[5]), container.NewGridWithColumns(2, state_bit_5, error_bit_5))
+	cell_box7 := container.NewGridWithColumns(3, cell[6], container.NewGridWithColumns(3, entry[6], btn_save[6], balancing[6]), container.NewGridWithColumns(2, state_bit_6, error_bit_6))
 
 	select_port := widget.NewSelect(debug_uart.GetPort(), func(string) {})
 	select_port.SetSelectedIndex(1)
@@ -201,18 +203,19 @@ func main() {
 		}
 	})
 
-	var light bool
-	btn_theme := widget.NewButton("Light", func() {
-		if light {
-			a.Settings().SetTheme(theme.DarkTheme())
-			light = false
-		} else {
-			a.Settings().SetTheme(theme.LightTheme())
-			light = true
-		}
+	var charging bool
+	btn_charger := widget.NewButton("Charger", func() {
+		charging = true
 	})
 
-	btn_box := container.NewGridWithColumns(3, container.NewGridWithColumns(2, select_port, btn_connect), container.NewGridWithColumns(2, btn_start, btn_theme), container.NewGridWithColumns(2, state_bit_7, error_bit_7))
+	charger_color := canvas.NewRectangle(color.NRGBA{45, 45, 45, 255})
+
+	btn_box := container.NewGridWithColumns(
+		3,
+		container.NewGridWithColumns(2, select_port, btn_connect),
+		container.NewGridWithColumns(2, btn_start, container.New(layout.NewMaxLayout(), charger_color, btn_charger)),
+		container.NewGridWithColumns(2, state_bit_7, error_bit_7),
+	)
 
 	content := container.NewVBox(
 		title,
@@ -236,7 +239,7 @@ func main() {
 				temp_1.SetText("Sensor 1: " + strconv.Itoa(int(values[8])-273) + "C°")
 				temp_2.SetText("Sensor 2: " + strconv.Itoa(int(values[9])-273) + "C°")
 
-				state_answer := uart.GetState()
+				state_answer = uart.GetState()
 				for i, n := range circle_green {
 					if GetBit(state_answer, i) {
 						n.FillColor = color.NRGBA{17, 255, 0, 255}
@@ -245,7 +248,7 @@ func main() {
 					}
 					n.Refresh()
 				}
-				error_answer := uart.GetError()
+				error_answer = uart.GetError()
 				for i, n := range circle_red {
 					if GetBit(error_answer, i) {
 						n.FillColor = color.NRGBA{255, 3, 15, 255}
@@ -253,6 +256,14 @@ func main() {
 						n.FillColor = color.NRGBA{217, 26, 20, 50}
 					}
 					n.Refresh()
+				}
+
+				for i, _ := range save {
+					if save[i] {
+						data, _ := strconv.ParseUint(entry[i].Text, 10, 16)
+						uart.Correction(i, uint16(data))
+						save[i] = false
+					}
 				}
 
 			} else if uart.Stopped {
@@ -279,11 +290,19 @@ func main() {
 				btn_connect.SetText("Connect")
 			}
 
-			if light {
-				btn_theme.SetText("Dark")
-			} else {
-				btn_theme.SetText("Light")
+			if charging {
+				uart.Charging()
+				charging = false
 			}
+
+			if GetBit(state_answer, 2) {
+				charger_color.FillColor = color.NRGBA{28, 138, 6, 255}
+				charger_color.Refresh()
+			} else {
+				charger_color.FillColor = color.NRGBA{45, 45, 45, 50}
+				charger_color.Refresh()
+			}
+
 		}
 	}()
 
