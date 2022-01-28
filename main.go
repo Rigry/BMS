@@ -32,6 +32,10 @@ func button_save(entry *widget.Entry, answer *canvas.Text) *widget.Button {
 	return btn
 }
 
+// func button_balancing() *widget.NewButton {
+// 	btn := widget.NewButton()
+// }
+
 func GetBit(v byte, n int) bool {
 	return v&(1<<n) != 0
 }
@@ -39,6 +43,7 @@ func GetBit(v byte, n int) bool {
 func main() {
 
 	uart := debug_uart.Make()
+	// defer uart.Port.Close()
 	values := make([]uint16, 10)
 
 	a := app.New()
@@ -76,6 +81,11 @@ func main() {
 	var btn [qty_cell]*widget.Button
 	for i, _ := range btn {
 		btn[i] = button_save(entry[i], answer[i])
+	}
+
+	var balancing [qty_cell]*widget.Button
+	for i, _ := range balancing {
+		balancing[i] = widget.NewButton(strconv.Itoa(i + 1), func(){})
 	}
 
 	temp_board := widget.NewLabel("Board: stopped")
@@ -154,13 +164,13 @@ func main() {
 	label_error.Alignment = 1
 
 	temp_box := container.NewGridWithColumns(6, temp_board, temp_1, temp_2, &layout.Spacer{}, label_state, label_error)
-	cell_box1 := container.NewGridWithColumns(3, cell[0], container.NewGridWithColumns(2, entry[0], btn[0]), container.NewGridWithColumns(2, state_bit_0, error_bit_0))
-	cell_box2 := container.NewGridWithColumns(3, cell[1], container.NewGridWithColumns(2, entry[1], btn[1]), container.NewGridWithColumns(2, state_bit_1, error_bit_1))
-	cell_box3 := container.NewGridWithColumns(3, cell[2], container.NewGridWithColumns(2, entry[2], btn[2]), container.NewGridWithColumns(2, state_bit_2, error_bit_2))
-	cell_box4 := container.NewGridWithColumns(3, cell[3], container.NewGridWithColumns(2, entry[3], btn[3]), container.NewGridWithColumns(2, state_bit_3, error_bit_3))
-	cell_box5 := container.NewGridWithColumns(3, cell[4], container.NewGridWithColumns(2, entry[4], btn[4]), container.NewGridWithColumns(2, state_bit_4, error_bit_4))
-	cell_box6 := container.NewGridWithColumns(3, cell[5], container.NewGridWithColumns(2, entry[5], btn[5]), container.NewGridWithColumns(2, state_bit_5, error_bit_5))
-	cell_box7 := container.NewGridWithColumns(3, cell[6], container.NewGridWithColumns(2, entry[6], btn[6]), container.NewGridWithColumns(2, state_bit_6, error_bit_6))
+	cell_box1 := container.NewGridWithColumns(3, cell[0], container.NewGridWithColumns(3, entry[0], btn[0], balancing[0]), container.NewGridWithColumns(2, state_bit_0, error_bit_0))
+	cell_box2 := container.NewGridWithColumns(3, cell[1], container.NewGridWithColumns(3, entry[1], btn[1], balancing[1]), container.NewGridWithColumns(2, state_bit_1, error_bit_1))
+	cell_box3 := container.NewGridWithColumns(3, cell[2], container.NewGridWithColumns(3, entry[2], btn[2], balancing[2]), container.NewGridWithColumns(2, state_bit_2, error_bit_2))
+	cell_box4 := container.NewGridWithColumns(3, cell[3], container.NewGridWithColumns(3, entry[3], btn[3], balancing[3]), container.NewGridWithColumns(2, state_bit_3, error_bit_3))
+	cell_box5 := container.NewGridWithColumns(3, cell[4], container.NewGridWithColumns(3, entry[4], btn[4], balancing[4]), container.NewGridWithColumns(2, state_bit_4, error_bit_4))
+	cell_box6 := container.NewGridWithColumns(3, cell[5], container.NewGridWithColumns(3, entry[5], btn[5], balancing[5]), container.NewGridWithColumns(2, state_bit_5, error_bit_5))
+	cell_box7 := container.NewGridWithColumns(3, cell[6], container.NewGridWithColumns(3, entry[6], btn[6], balancing[6]), container.NewGridWithColumns(2, state_bit_6, error_bit_6))
 
 	select_port := widget.NewSelect(debug_uart.GetPort(), func(string) {})
 	select_port.SetSelectedIndex(1)
@@ -169,6 +179,7 @@ func main() {
 	btn_connect := widget.NewButton("Connect", func() {
 		if connect {
 			uart.Stop()
+			time.Sleep(10 * time.Millisecond)
 			uart.Close()
 			connect = false
 		} else {
@@ -181,13 +192,12 @@ func main() {
 	})
 
 	btn_start := widget.NewButton("Start", func() {
-		for {
-			if uart.Started {
-				uart.Stop()
-				break
-			} else if uart.Start() {
-				break
-			}
+
+		if uart.Started {
+			uart.Stop()
+
+		} else {
+			uart.Start()
 		}
 	})
 
@@ -212,7 +222,7 @@ func main() {
 	)
 
 	go func() {
-		for range time.Tick(30 * time.Millisecond) {
+		for range time.Tick(100 * time.Millisecond) {
 			if uart.Started {
 				btn_start.SetText("Stop")
 				values = uart.GetData()
