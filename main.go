@@ -47,8 +47,8 @@ func main() {
 	var error_answer byte
 
 	a := app.New()
-	r, _ := fyne.LoadResourceFromPath("logo.png")
-	a.SetIcon(r)
+	// r, _ := fyne.LoadResourceFromPath("logo.png")
+	// a.SetIcon(r)
 	w := a.NewWindow("BMS")
 	w.SetMaster()
 	a.Settings().SetTheme(theme.DarkTheme())
@@ -90,9 +90,9 @@ func main() {
 		balancing[i] = button_balancing(i, uart)
 	}
 
-	temp_board := widget.NewLabel("Board: stopped")
-	temp_1 := widget.NewLabel("Sensor 1: stopped")
-	temp_2 := widget.NewLabel("Sensor 2: stopped")
+	temp_board := widget.NewLabel("Board: stop")
+	temp_1 := widget.NewLabel("Sensor 1: stop")
+	temp_2 := widget.NewLabel("Sensor 2: stop")
 
 	var circle_green [8]*canvas.Circle
 	for i, _ := range circle_green {
@@ -114,7 +114,7 @@ func main() {
 	state_1.Move(fyne.Position{X: 30, Y: 0})
 	state_2 := widget.NewLabel("charging")
 	state_2.Move(fyne.Position{X: 30, Y: 0})
-	state_3 := widget.NewLabel("discharging")
+	state_3 := widget.NewLabel("test")
 	state_3.Move(fyne.Position{X: 30, Y: 0})
 	state_4 := widget.NewLabel("reserved")
 	state_4.Move(fyne.Position{X: 30, Y: 0})
@@ -164,8 +164,10 @@ func main() {
 	label_state.Alignment = 1
 	label_error := canvas.NewText("Errors", color.NRGBA{242, 255, 0, 255})
 	label_error.Alignment = 1
+	// &layout.Spacer{},
 
-	temp_box := container.NewGridWithColumns(6, temp_board, temp_1, temp_2, &layout.Spacer{}, label_state, label_error)
+	// temp_box := container.NewGridWithColumns(3, container.NewGridWithColumns(3, temp_board, temp_1, temp_2), container.NewGridWithColumns(3, &layout.Spacer{}, &layout.Spacer{}, container.New(layout.NewMaxLayout(), test_color, btn_test)), container.NewGridWithColumns(2, label_state, label_error))
+	temp_box := container.NewGridWithColumns(3, container.NewGridWithColumns(3, temp_board, temp_1, temp_2), container.NewGridWithColumns(3, &layout.Spacer{}, &layout.Spacer{}, &layout.Spacer{}), container.NewGridWithColumns(2, label_state, label_error))
 	cell_box1 := container.NewGridWithColumns(3, cell[0], container.NewGridWithColumns(3, entry[0], btn_save[0], balancing[0]), container.NewGridWithColumns(2, state_bit_0, error_bit_0))
 	cell_box2 := container.NewGridWithColumns(3, cell[1], container.NewGridWithColumns(3, entry[1], btn_save[1], balancing[1]), container.NewGridWithColumns(2, state_bit_1, error_bit_1))
 	cell_box3 := container.NewGridWithColumns(3, cell[2], container.NewGridWithColumns(3, entry[2], btn_save[2], balancing[2]), container.NewGridWithColumns(2, state_bit_2, error_bit_2))
@@ -203,6 +205,19 @@ func main() {
 		}
 	})
 
+	var test bool
+	btn_test := widget.NewButton("Test", func() {
+		if test {
+			test = false
+			uart.Test_off()
+		} else {
+			test = true
+			uart.Test_on()
+		}
+	})
+
+	test_color := canvas.NewRectangle(color.NRGBA{45, 45, 45, 255})
+
 	var charging bool
 	btn_charger := widget.NewButton("Charger", func() {
 		charging = true
@@ -213,7 +228,7 @@ func main() {
 	btn_box := container.NewGridWithColumns(
 		3,
 		container.NewGridWithColumns(2, select_port, btn_connect),
-		container.NewGridWithColumns(2, btn_start, container.New(layout.NewMaxLayout(), charger_color, btn_charger)),
+		container.NewGridWithColumns(3, btn_start, container.New(layout.NewMaxLayout(), test_color, btn_test), container.New(layout.NewMaxLayout(), charger_color, btn_charger)),
 		container.NewGridWithColumns(2, state_bit_7, error_bit_7),
 	)
 
@@ -271,9 +286,9 @@ func main() {
 					cell[i].SetValue(3.2)
 					cell[i].TextFormatter = func() string { return fmt.Sprintf("%.2f Volts", 0.0) }
 				}
-				temp_board.SetText("Board: stopped")
-				temp_1.SetText("Sensor 1: stopped")
-				temp_2.SetText("Sensor 2: stopped")
+				temp_board.SetText("Board: stop")
+				temp_1.SetText("Sensor 1: stop")
+				temp_2.SetText("Sensor 2: stop")
 				btn_start.SetText("Start")
 
 				for i, _ := range circle_green {
@@ -288,6 +303,14 @@ func main() {
 				btn_connect.SetText("Disconnect")
 			} else {
 				btn_connect.SetText("Connect")
+			}
+
+			if GetBit(state_answer, 3) {
+				test_color.FillColor = color.NRGBA{28, 138, 6, 255}
+				test_color.Refresh()
+			} else {
+				test_color.FillColor = color.NRGBA{45, 45, 45, 50}
+				test_color.Refresh()
 			}
 
 			if charging {
