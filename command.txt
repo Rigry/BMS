@@ -1,0 +1,5 @@
+E:\Projects\Go\bin\fyne package -os windows -icon logo.png
+E:\Projects\Go\bin\fyne-cross windows 
+fyne-cross windows -arch=amd64,386
+E:\Projects\Go\bin\fyne-cross windows -arch=amd64,386
+E:\Projects\Go\bin\fyne package -os windows -icon indicator.png
